@@ -10,5 +10,10 @@ Automate pipe-lining GUI ML/DL project
 - Train model
 - Inference system
 
-
 ## Additional?
+
+## Pre_existing similar systems
+
+`https://www.knime.com`
+`https://neptune.ai/blog/best-workflow-and-pipeline-orchestration-tools`
+`https://altair.com/altair-rapidminer`

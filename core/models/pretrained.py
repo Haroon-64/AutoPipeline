@@ -25,7 +25,7 @@ model_configs = {
 }
 
 class ModelLoader:
-  def __init__(self, task, name, version=None, pretrained=False):
+  def __init__(self, task, name, version=None, pretrained=True):
     self.task = task
     self.name = name.lower()
     self.version = version
