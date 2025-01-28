@@ -17,5 +17,9 @@ def create_or_load_env(env_name="myenv"):
 
     print(f"To activate the virtual environment, run:\n{activate_command}")
 
+def install_libs(env):
+    pass
+
 if __name__ == "__main__":
     create_or_load_env("myenv")
+

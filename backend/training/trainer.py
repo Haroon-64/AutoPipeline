@@ -4,7 +4,7 @@ from livelossplot import PlotLosses
 from tqdm import tqdm
 import json  
 import os
-
+# seperate training, validation, testing and metrics later
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 os.makedirs('../logs', exist_ok=True)
 log_file_path = os.path.join('../logs', 'logs.json')

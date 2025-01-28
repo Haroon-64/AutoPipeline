@@ -1,9 +1,7 @@
 import os
 import subprocess
 import sys
-
-from app.services import task_select
-
+from typing import List
 
 def install_libraries(task):
     libraries = {"image": ""}

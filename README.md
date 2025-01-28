@@ -1,6 +1,9 @@
 # AutoPipeline
-Automate pipe-lining GUI ML/DL project 
-## Should be able to:
+
+Automate pipe-lining GUI ML/DL project
+
+## Should be able to
+
 - Select a Task
 - Choose model -- Pretrained or Custom
 - - customize model layers, etc
@@ -11,6 +14,9 @@ Automate pipe-lining GUI ML/DL project
 - Inference system
 
 ## Additional?
+
+- decided to use fastapi to host the functions 
+- decided to develop webApp using react first instead of flutter
 
 ## Pre_existing similar systems
 
