@@ -2,6 +2,13 @@ import torch
 import torchaudio.models as amodels
 import torchvision.models as vmodels
 
+# from torchvision.models import (
+#     resnet18, resnet34, resnet50, resnet101, resnet152,
+#     mobilenet_v3_small, mobilenet_v3_large,
+#     ResNet18_Weights, ResNet34_Weights, ResNet50_Weights,
+#     ResNet101_Weights, ResNet152_Weights, MobileNet_V2_Weights, MobileNet_V3_Large_Weights
+# )
+
 model_configs = {
     "resnet": {"50": vmodels.resnet50, "101": vmodels.resnet101},
     "efficientnet": {"b0": vmodels.efficientnet_b0, "b1": vmodels.efficientnet_b1},
