@@ -28,3 +28,7 @@ OR
 `https://www.knime.com`
 `https://neptune.ai/blog/best-workflow-and-pipeline-orchestration-tools`
 `https://altair.com/altair-rapidminer`
+
+## Testing
+- tried to make a smaller version to only work for image classification
+`https://github.com/Haroon-64/Image_Classifier_Trainer`
