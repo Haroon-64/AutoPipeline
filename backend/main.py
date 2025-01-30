@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from data.preprocess import build_transforms, TransformConfig
+from backend.data.image.preprocess import build_transforms, TransformConfig
 from data.data_loader import DataLoader
 from models.pretrained import ModelLoader
 from models.custom import CustomModel
