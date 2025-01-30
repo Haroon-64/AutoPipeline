@@ -22,7 +22,7 @@ OR
 
 - make everythng in python
 - UI using Libs like pyside
-- 
+
 ## Pre_existing similar systems
 
 `https://www.knime.com`
@@ -30,5 +30,6 @@ OR
 `https://altair.com/altair-rapidminer`
 
 ## Testing
+
 - tried to make a smaller version to only work for image classification
 `https://github.com/Haroon-64/Image_Classifier_Trainer`
