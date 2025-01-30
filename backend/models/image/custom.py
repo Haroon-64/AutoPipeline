@@ -19,7 +19,7 @@ class CustomLoader(nn.module):
             return nn.Linear(*a, **k)
         if layer_type.lower() == 'relu':
             return nn.ReLU(*a, **k)
-        # add more  eg other non linearity, skip conns etc
+        # TODO: add more  eg other non linearity, skip conns etc
 
 
     def forward(self,x):
