@@ -15,11 +15,20 @@ Automate pipe-lining GUI ML/DL project
 
 ## Additional?
 
-- decided to use fastapi to host the functions 
-- decided to develop webApp using react first instead of flutter
+- decided to use fastapi to host the functions
+- decided to develop webApp using react first
 
+OR
+
+- make everythng in python
+- UI using Libs like pyside
+- 
 ## Pre_existing similar systems
 
 `https://www.knime.com`
 `https://neptune.ai/blog/best-workflow-and-pipeline-orchestration-tools`
 `https://altair.com/altair-rapidminer`
+
+## Testing
+- tried to make a smaller version to only work for image classification
+`https://github.com/Haroon-64/Image_Classifier_Trainer`
