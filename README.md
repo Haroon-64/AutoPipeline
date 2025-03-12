@@ -32,4 +32,4 @@ OR
 ## Testing
 
 - tried to make a smaller version to only work for image classification
-`https://github.com/Haroon-64/Image_Classifier_Trainer`
+[](https://github.com/Haroon-64/Image_Classifier_Trainer)
