@@ -1,0 +1,20 @@
+task: image_classification
+data:
+  path: ./datasets/cats_vs_dogs
+  split_ratio: 0.8
+preprocessing:
+  resize: [224, 224]
+  normalize: true
+
+model:
+  type: resnet18
+  pretrained: true
+  num_classes: 2
+
+training:
+  epochs: 10
+  batch_size: 32
+  lr: 0.001
+
+export:
+  format: onnx

@@ -1,0 +1,42 @@
+image_classification:
+  pretrained_resnet:
+    type: torchvision
+    name: resnet18
+    pretrained: true
+    num_classes: 10
+    #  resnet18 , resnet50...
+    depth: 18
+
+  custom_stack:
+    type: custom_layers
+    input_shape: [3, 64, 64]  # Image size (channels, height, width)
+    layers:
+      - Conv2d: { in_channels: 3, out_channels: 16, kernel_size: 3, padding: 1, stride: 1 }
+      - ReLU: {}
+      - MaxPool2d: { kernel_size: 2, stride: 2 }
+      - Conv2d: { in_channels: 16, out_channels: 32, kernel_size: 3, padding: 1, stride: 1 }
+      - ReLU: {}
+      - MaxPool2d: { kernel_size: 2, stride: 2 }
+      - Flatten: {}
+      - Linear: { in_features: 8192, out_features: 128 } 
+      - ReLU: {}
+      - Linear: { in_features: 128, out_features: 10 }   # Output layer (number of classes)
+
+text_classification:
+  pretrained_bert:
+    type: huggingface
+    model_name: bert-base-uncased
+    num_labels: 2
+    hidden_size: 768  # Hidden size customization for BERT
+    num_layers: 12   # Layers can be customized
+
+  custom_lstm:
+    type: custom_layers
+    input_size: 300
+    hidden_size: 128  # Customizable LSTM hidden size
+    num_layers: 2     # Number of LSTM layers
+    dropout: 0.2
+    num_classes: 2
+    layers:
+      - LSTM: { input_size: 300, hidden_size: 128, num_layers: 2, dropout: 0.2, bidirectional: true }
+      - Linear: { in_features: 256, out_features: 2 }  # Custom number of output features
