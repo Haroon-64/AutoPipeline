@@ -1,18 +1,16 @@
 [
-    "torch, torchvision",
-    "dl",
-    "image_segmentation",
-    "png",
-    "custom",
+    "torch, transformers",
+    "nlp",
+    "text_classification",
+    "txt",
+    "pretrained",
     [
-      {"type": "conv", "in_channels": 3, "out_channels": 16, "kernel_size": 3},
-      {"type": "maxpool", "kernel_size": 2},
-      {"type": "conv", "in_channels": 16, "out_channels": 32, "kernel_size": 3},
-      {"type": "linear", "in_features": 512, "out_features": 2, "activation": "ReLU"}
+      {"type": "embedding", "vocab_size": 30000, "embedding_dim": 128},
+      {"type": "lstm", "input_size": 128, "hidden_size": 256, "num_layers": 2},
+      {"type": "linear", "in_features": 256, "out_features": 5, "activation": "Softmax"}
     ],
     "CrossEntropyLoss",
-    "Adam",
-    0.001,
-    15
-  ]
-  
+    "AdamW",
+    0.0001,
+    10
+]
