@@ -1,6 +1,18 @@
 import json
 from jinja2 import Environment, FileSystemLoader
 
+
+#   [0] imports
+#   [1] ml_or_dl
+#   [2] task_type
+#   [3] data_type
+#   [4] model_type (pretrained/custom)
+#   [5] pretrained_model name or custom_layers list
+#   [6] loss_function
+#   [7] optimizer
+#   [8] learning_rate
+#   [9] epochs
+
 # Load pipeline definition
 with open("pipeline.txt") as f:
     pipeline = json.load(f)
