@@ -1,0 +1,57 @@
+{# Dynamic import block #}
+{% for imp in imports -%}
+import {{ imp }}
+{% endfor %}
+
+# Task: {{ task.ml_or_dl | upper }} - {{ task.task_type }} on {{ task.data_type }} data
+# Data path: {{ task.data_path }}
+
+def load_data(path):
+    # Implement data loading logic for {{ task.data_type }}
+    pass
+
+{% if task.ml_or_dl == 'dl' and model.framework == 'pytorch' %}
+import torch.nn as nn
+
+{% if model.prebuilt_model %}
+model = torch.hub.load('pytorch/vision:v0.10.0', '{{ model.prebuilt_model }}', pretrained={{ model.use_pretrained | default(true) | lower }})
+{% else %}
+class CustomModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            {% for layer in model.custom_layers -%}
+            {% if layer.type == 'conv' -%}
+            nn.Conv2d({{ layer.in_channels }}, {{ layer.out_channels }}, kernel_size={{ layer.kernel_size }}),
+            {% elif layer.type == 'maxpool' -%}
+            nn.MaxPool2d(kernel_size={{ layer.kernel_size }}),
+            {% elif layer.type == 'linear' -%}
+            nn.Linear({{ layer.in_features }}, {{ layer.out_features }}),
+            {% endif -%}
+            {% if layer.activation -%}
+            nn.{{ layer.activation }}(),
+            {% endif -%}
+            {% endfor %}
+        )
+
+    def forward(self, x):
+        return self.model(x)
+
+model = CustomModel()
+{% endif %}
+
+criterion = nn.{{ training.loss_function }}()
+optimizer = torch.optim.{{ training.optimizer }}(model.parameters(), lr={{ training.learning_rate }})
+
+for epoch in range({{ training.epochs }}):
+    # Add training loop
+    pass
+
+{% elif task.ml_or_dl == 'ml' and model.framework == 'sklearn' %}
+from sklearn.{{ model.category }} import {{ model.prebuilt_model }}
+model = {{ model.prebuilt_model }}()
+model.fit(X_train, y_train)
+{% endif %}
+
+def evaluate():
+    pass
