@@ -1,0 +1,12 @@
+[
+  "sklearn",
+  "ml",
+  "regression",
+  "csv",
+  "pretrained",
+  "LinearRegression",
+  "MeanSquaredError",
+  "SGD",
+  0.01,
+  50
+]

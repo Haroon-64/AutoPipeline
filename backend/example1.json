@@ -1,0 +1,12 @@
+[
+  "torch, torchvision",
+  "dl",
+  "image_classification",
+  "png",
+  "pretrained",
+  "resnet18",
+  "CrossEntropyLoss",
+  "Adam",
+  0.001,
+  10
+]
