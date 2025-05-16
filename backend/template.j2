@@ -1,4 +1,3 @@
-{# Dynamic import block #}
 {% for imp in imports -%}
 import {{ imp }}
 {% endfor %}
@@ -7,7 +6,7 @@ import {{ imp }}
 # Data path: {{ task.data_path }}
 
 def load_data(path):
-    # Implement data loading logic for {{ task.data_type }}
+    #  for {{ task.data_type }}
     pass
 
 {% if task.ml_or_dl == 'dl' and model.framework == 'pytorch' %}
