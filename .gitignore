@@ -162,5 +162,5 @@ cython_debug/
 #.idea/
 
 *.test
-sketch/*
-*.lock
+sketches/*
+/.ruff_cache
