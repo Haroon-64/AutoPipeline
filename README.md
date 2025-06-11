@@ -10,3 +10,6 @@
   - send back generated code
   - send training status, inference results
 - run training or inference scripts and return result to UI
+
+
+- visualizations in UI for the pipelines, models and outputs after training
