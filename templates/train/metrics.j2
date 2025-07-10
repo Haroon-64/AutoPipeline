@@ -1,0 +1,14 @@
+metrics = []
+{% for m in config.training.metrics %}
+{% if m.name == "accuracy" %}
+metrics.append(torchmetrics.Accuracy(**{{ m.params }}))
+{% elif m.name == "f1_score" %}
+metrics.append(torchmetrics.F1Score(**{{ m.params }}))
+{% elif m.name == "recall" %}
+metrics.append(torchmetrics.Recall(**{{ m.params }}))
+{% elif m.name == "mean_absolute_error" %}
+metrics.append(torchmetrics.MeanAbsoluteError(**{{ m.params }}))
+{% else %}
+raise NotImplementedError("Unsupported metric: {{ m.name }}")
+{% endif %}
+{% endfor %}

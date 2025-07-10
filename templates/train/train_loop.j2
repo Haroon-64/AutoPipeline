@@ -1,12 +1,14 @@
-{%- raw -%}
 def train_one_epoch(model, loader, criterion, optimizer, device):
     model.train()
+    total_loss = 0
+    correct = 0
     for batch in loader:
-        inputs, targets = batch
-        inputs, targets = inputs.to(device), targets.to(device)
+        inputs, targets = batch["image"].to(device), batch["label"].to(device)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
-{%- endraw -%}
+        total_loss += loss.item()
+        correct += (outputs.argmax(dim=1) == targets).sum().item()
+    return total_loss / len(loader), correct / len(loader.dataset)

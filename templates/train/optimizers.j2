@@ -1,0 +1,17 @@
+# Optimizer definition
+{% set name = config.training.optimizer.name %}
+{% set args = config.training.optimizer.params %}
+
+{% if name == "adam" %}
+optimizer = torch.optim.Adam(model.parameters(), **{{ args }})
+{% elif name == "sgd" %}
+optimizer = torch.optim.SGD(model.parameters(), **{{ args }})
+{% elif name == "rmsprop" %}
+optimizer = torch.optim.RMSprop(model.parameters(), **{{ args }})
+{% elif name == "adagrad" %}
+optimizer = torch.optim.Adagrad(model.parameters(), **{{ args }})
+{% elif name == "nadam" %}
+optimizer = torch.optim.NAdam(model.parameters(), **{{ args }})
+{% else %}
+raise NotImplementedError("Unsupported optimizer: {{ name }}")
+{% endif %}

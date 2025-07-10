@@ -1,53 +1,48 @@
-{%- raw -%}
-import torch
 import random
-import numpy
-{%- endraw -%}
+from pathlib import Path
+import numpy as np
+import torch
 
-{# Model imports #}
-{% if config.modelType == 'pretrained' %}
-from torchvision import models
-{% elif config.modelType == 'custom' %}
-import torch.nn as nn
+{% if config.data.data_format == "imagefolder" %}
+from PIL import Image
+from torchvision import transforms
 {% endif %}
 
-{# Data transforms imports based on data type #}
-{% if config.preprocessing and config.mainDataType == 'image' %}
-from torchvision import transforms
-{% elif config.preprocessing and config.mainDataType == 'audio' %}
+from torch.utils.data import DataLoader, Dataset
+
+{% if config.model.use_pretrained %}
+from torchvision import models
+from torchvision import transforms 
+{% endif %}
+
+import torch.nn as nn
+
+import torch.optim as optim
+
+{% if config.training.metrics %}
+import torchmetrics
+{% endif %}
+
+{% set main_task = config.data.main_task.lower() %}
+{% if "audio" in main_task %}
 import torchaudio
 import torchaudio.transforms as audio_transforms
-{% elif config.preprocessing and config.mainDataType == 'text' %}
+{% endif %}
+
+{% if "text" in main_task %}
 from torchtext.transforms import ToTensor
+from transformers import AutoTokenizer
 {% endif %}
 
-{# DataLoader import #}
-from torch.utils.data import DataLoader
-
-{# Optimizer import #}
-{% if config.optimizer %}
-import torch.optim as optim
+{% if config.data.sub_task.lower() == "text generation" %}
+from transformers import AutoModelForSeq2SeqLM
+from torchmetrics.text import BLEUScore
 {% endif %}
 
-{# Loss import #}
-{% if config.loss and config.loss.category == 'nn' %}
-import torch.nn as nn
-{% endif %}
-
-{# Metrics imports based on task/subtask #}
-{% if config.subTask == 'classification' %}
-from torchmetrics import Accuracy
-{% elif config.subTask == 'generation' %}
-from torchmetrics import BLEUScore
-{% endif %}
-
-{# Additional imports per subtask #}
-{% if config.mainDataType == 'text' and config.subTask == 'generation' %}
-# For text generation models
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-{% endif %}
-
-{% if config.mainDataType == 'audio' and config.subTask == 'classification' %}
-# For audio classification metrics or features
+{% if config.data.sub_task.lower() == "speech recognition" %}
 import torchaudio.functional as F
+{% endif %}
+
+{% if config.data.sub_task.lower() == "image segmentation" %}
+import segmentation_models_pytorch as smp
 {% endif %}
