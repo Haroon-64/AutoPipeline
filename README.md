@@ -25,7 +25,7 @@
 ## TODO: Build into a cross platform binary
 
 - build one using pyinstaller, need to build on other OS ✔️
-- Need to bundle witht The UI using tauri  side-car 
+- Need to bundle witht The UI using tauri  side-car ✔️* (needs system libs/venv for running)
 
 ## TODO: Pending functionalities
 
