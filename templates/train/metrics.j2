@@ -1,14 +1,32 @@
+{% for metric in config.training.metrics %}
 metrics = []
-{% for m in config.training.metrics %}
-{% if m.name == "accuracy" %}
-metrics.append(torchmetrics.Accuracy(**{{ m.params }}))
-{% elif m.name == "f1_score" %}
-metrics.append(torchmetrics.F1Score(**{{ m.params }}))
-{% elif m.name == "recall" %}
-metrics.append(torchmetrics.Recall(**{{ m.params }}))
-{% elif m.name == "mean_absolute_error" %}
-metrics.append(torchmetrics.MeanAbsoluteError(**{{ m.params }}))
-{% else %}
-raise NotImplementedError("Unsupported metric: {{ m.name }}")
+{% if metric.name == 'Accuracy' %}
+metrics.append(torchmetrics.Accuracy(
+    task='{{ metric.params.task | default("multiclass") }}',
+    num_classes={{ metric.params.num_classes | default(2) }},
+    threshold={{ metric.params.threshold | default('None') }},
+    top_k={{ metric.params.top_k | default('None') }},
+    average='{{ metric.params.average | default("micro") }}'
+))
+{% elif metric.name == 'F1Score' %}
+metrics.append(torchmetrics.F1Score(
+    task='{{ metric.params.task | default("multiclass") }}',
+    num_classes={{ metric.params.num_classes | default(2) }},
+    threshold={{ metric.params.threshold | default('None') }},
+    top_k={{ metric.params.top_k | default('None') }},
+    average='{{ metric.params.average | default("micro") }}'
+))
+{% elif metric.name == 'Recall' %}
+metrics.append(torchmetrics.Recall(
+    task='{{ metric.params.task | default("multiclass") }}',
+    num_classes={{ metric.params.num_classes | default(2) }},
+    threshold={{ metric.params.threshold | default('None') }},
+    top_k={{ metric.params.top_k | default('None') }},
+    average='{{ metric.params.average | default("micro") }}'
+))
+{% elif metric.name == 'MeanAbsoluteError' %}
+metrics.append(torchmetrics.MeanAbsoluteError(
+    num_outputs={{ metric.params.num_outputs | default('None') }}
+))
 {% endif %}
 {% endfor %}

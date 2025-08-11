@@ -1,0 +1,64 @@
+{
+  "data": {
+    "data": {
+      "task_type": "dl",
+      "main_task": "text",
+      "sub_task": "Text Classification",
+      "data_format": "csv",
+      "data_type": "file"
+    },
+    "dataloading": "def text_loader(csv_file):\n    # custom user data loading logic for text data\n    pass",
+    "preprocessing": [
+      {
+        "name": "Tokenization",
+        "params": {
+          "tokenizer_type": "bert-base-uncased"
+        }
+      }
+    ],
+    "model": {
+      "use_pretrained": true,
+      "pretrained": {
+        "name": "bert-base-uncased",
+        "params": {
+          "num_labels": 2
+        }
+      },
+      "layers": null
+    },
+    "training": {
+      "batch_size": 16,
+      "learning_rate": 2e-5,
+      "epochs": 5,
+      "weight_decay": null,
+      "optimizer": {
+        "name": "AdamW",
+        "params": {}
+      },
+      "scheduler": {
+        "name": "StepLR",
+        "params": {
+          "step_size": 2,
+          "gamma": 0.5
+        }
+      },
+      "loss": {
+        "name": "CrossEntropyLoss",
+        "params": {}
+      },
+      "metrics": [
+        {
+          "name": "F1Score",
+          "params": {
+            "average": "weighted"
+          }
+        }
+      ],
+      "early_stopping": {
+        "enabled": false,
+        "params": {}
+      },
+      "monitoring": ["use_wandb", "use_mlflow"]
+    }
+  }
+}

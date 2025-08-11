@@ -1,243 +1,155 @@
-{% macro Linear(in_features, out_features, bias=True) %}
-    nn.Linear({{ in_features }}, {{ out_features }}, bias={{ bias }})
-{% endmacro %}
+{% macro pyarg(val) -%}
+    {%- if val is string -%}
+        '{{ val }}'
+    {%- elif val is iterable and val is not string -%}
+        ({{ val | join(', ') }})
+    {%- else -%}
+        {{ val }}
+    {%- endif -%}
+{%- endmacro %}
 
-{% macro Bilinear(in1_features, in2_features, out_features, bias=True) %}
-    nn.Bilinear({{ in1_features }}, {{ in2_features }}, {{ out_features }}, bias={{ bias }})
-{% endmacro %}
-
-{% macro Conv1d(
-    in_channels, out_channels, kernel_size,
-    stride=1, padding=0, dilation=1, groups=1,
-    bias=True, padding_mode='zeros'
-) %}
+model = nn.Sequential(
+{%- for lyr in model.layers %}
+    {%- set t = lyr.type %}
+    {%- set p = lyr.params %}
+    {%- if t == 'Linear' %}
+    nn.Linear({{ pyarg(p.in_features) }}, {{ pyarg(p.out_features) }}, bias={{ p.bias | default(true) }})
+    {%- elif t == 'Bilinear' %}
+    nn.Bilinear({{ pyarg(p.in1_features) }}, {{ pyarg(p.in2_features) }}, {{ pyarg(p.out_features) }}, bias={{ p.bias | default(true) }})
+    {%- elif t == 'Conv1d' %}
     nn.Conv1d(
-        {{ in_channels }}, {{ out_channels }}, {{ kernel_size }},
-        stride={{ stride }}, padding={{ padding }}, dilation={{ dilation }},
-        groups={{ groups }}, bias={{ bias }}, padding_mode='{{ padding_mode }}'
+        {{ pyarg(p.in_channels) }}, {{ pyarg(p.out_channels) }}, {{ pyarg(p.kernel_size) }},
+        stride={{ pyarg(p.stride | default(1)) }}, padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }},
+        groups={{ pyarg(p.groups | default(1)) }}, bias={{ p.bias | default(true) }}, padding_mode='{{ p.padding_mode | default("zeros") }}'
     )
-{% endmacro %}
-
-{% macro Conv2d(
-    in_channels, out_channels, kernel_size, stride,
-    padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros'
-) %}
+    {%- elif t == 'Conv2d' %}
     nn.Conv2d(
-        {{ in_channels }}, {{ out_channels }}, {{ kernel_size }},
-        stride={{ stride }}, padding={{ padding }}, dilation={{ dilation }},
-        groups={{ groups }}, bias={{ bias }}, padding_mode='{{ padding_mode }}'
+        {{ pyarg(p.in_channels) }}, {{ pyarg(p.out_channels) }}, {{ pyarg(p.kernel_size) }},
+        stride={{ pyarg(p.stride) }}, padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }},
+        groups={{ pyarg(p.groups | default(1)) }}, bias={{ p.bias | default(true) }}, padding_mode='{{ p.padding_mode | default("zeros") }}'
     )
-{% endmacro %}
-
-{% macro Conv3d(
-    in_channels, out_channels, kernel_size,
-    stride=1, padding=0, dilation=1, groups=1,
-    bias=True, padding_mode='zeros'
-) %}
+    {%- elif t == 'Conv3d' %}
     nn.Conv3d(
-        {{ in_channels }}, {{ out_channels }}, {{ kernel_size }},
-        stride={{ stride }}, padding={{ padding }}, dilation={{ dilation }},
-        groups={{ groups }}, bias={{ bias }}, padding_mode='{{ padding_mode }}'
+        {{ pyarg(p.in_channels) }}, {{ pyarg(p.out_channels) }}, {{ pyarg(p.kernel_size) }},
+        stride={{ pyarg(p.stride | default(1)) }}, padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }},
+        groups={{ pyarg(p.groups | default(1)) }}, bias={{ p.bias | default(true) }}, padding_mode='{{ p.padding_mode | default("zeros") }}'
     )
-{% endmacro %}
-
-{% macro ConvTranspose1d(
-    in_channels, out_channels, kernel_size,
-    stride=1, padding=0, output_padding=0, bias=True
-) %}
+    {%- elif t == 'ConvTranspose1d' %}
     nn.ConvTranspose1d(
-        {{ in_channels }}, {{ out_channels }}, {{ kernel_size }},
-        stride={{ stride }}, padding={{ padding }},
-        output_padding={{ output_padding }}, bias={{ bias }}
+        {{ pyarg(p.in_channels) }}, {{ pyarg(p.out_channels) }}, {{ pyarg(p.kernel_size) }},
+        stride={{ pyarg(p.stride | default(1)) }}, padding={{ pyarg(p.padding | default(0)) }},
+        output_padding={{ pyarg(p.output_padding | default(0)) }}, bias={{ p.bias | default(true) }}
     )
-{% endmacro %}
-
-{% macro ConvTranspose2d(
-    in_channels, out_channels, kernel_size,
-    stride=1, padding=0, output_padding=0, bias=True
-) %}
+    {%- elif t == 'ConvTranspose2d' %}
     nn.ConvTranspose2d(
-        {{ in_channels }}, {{ out_channels }}, {{ kernel_size }},
-        stride={{ stride }}, padding={{ padding }},
-        output_padding={{ output_padding }}, bias={{ bias }}
+        {{ pyarg(p.in_channels) }}, {{ pyarg(p.out_channels) }}, {{ pyarg(p.kernel_size) }},
+        stride={{ pyarg(p.stride | default(1)) }}, padding={{ pyarg(p.padding | default(0)) }},
+        output_padding={{ pyarg(p.output_padding | default(0)) }}, bias={{ p.bias | default(true) }}
     )
-{% endmacro %}
-
-{% macro ConvTranspose3d(
-    in_channels, out_channels, kernel_size,
-    stride=1, padding=0, output_padding=0, bias=True
-) %}
+    {%- elif t == 'ConvTranspose3d' %}
     nn.ConvTranspose3d(
-        {{ in_channels }}, {{ out_channels }}, {{ kernel_size }},
-        stride={{ stride }}, padding={{ padding }},
-        output_padding={{ output_padding }}, bias={{ bias }}
+        {{ pyarg(p.in_channels) }}, {{ pyarg(p.out_channels) }}, {{ pyarg(p.kernel_size) }},
+        stride={{ pyarg(p.stride | default(1)) }}, padding={{ pyarg(p.padding | default(0)) }},
+        output_padding={{ pyarg(p.output_padding | default(0)) }}, bias={{ p.bias | default(true) }}
     )
-{% endmacro %}
-
-{% macro MaxPool1d(
-    kernel_size, stride=None, padding=0, dilation=1, ceil_mode=False
-) %}
+    {%- elif t == 'MaxPool1d' %}
     nn.MaxPool1d(
-        {{ kernel_size }}, stride={{ stride or kernel_size }},
-        padding={{ padding }}, dilation={{ dilation }}, ceil_mode={{ ceil_mode }}
+        {{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(p.kernel_size)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }}, ceil_mode={{ p.ceil_mode | default(false) }}
     )
-{% endmacro %}
-
-{% macro MaxPool2d(
-    kernel_size, stride=None, padding=0, dilation=1, ceil_mode=False
-) %}
+    {%- elif t == 'MaxPool2d' %}
     nn.MaxPool2d(
-        {{ kernel_size }}, stride={{ stride or kernel_size }},
-        padding={{ padding }}, dilation={{ dilation }}, ceil_mode={{ ceil_mode }}
+        {{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(p.kernel_size)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }}, ceil_mode={{ p.ceil_mode | default(false) }}
     )
-{% endmacro %}
-
-{% macro MaxPool3d(
-    kernel_size, stride=None, padding=0, dilation=1, ceil_mode=False
-) %}
+    {%- elif t == 'MaxPool3d' %}
     nn.MaxPool3d(
-        {{ kernel_size }}, stride={{ stride or kernel_size }},
-        padding={{ padding }}, dilation={{ dilation }}, ceil_mode={{ ceil_mode }}
+        {{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(p.kernel_size)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }}, ceil_mode={{ p.ceil_mode | default(false) }}
     )
-{% endmacro %}
-
-{% macro AvgPool1d(
-    kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True
-) %}
+    {%- elif t == 'AvgPool1d' %}
     nn.AvgPool1d(
-        {{ kernel_size }}, stride={{ stride or kernel_size }},
-        padding={{ padding }}, ceil_mode={{ ceil_mode }},
-        count_include_pad={{ count_include_pad }}
+        {{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(p.kernel_size)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, ceil_mode={{ p.ceil_mode | default(false) }},
+        count_include_pad={{ p.count_include_pad | default(true) }}
     )
-{% endmacro %}
-
-{% macro AvgPool2d(
-    kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True
-) %}
+    {%- elif t == 'AvgPool2d' %}
     nn.AvgPool2d(
-        {{ kernel_size }}, stride={{ stride or kernel_size }},
-        padding={{ padding }}, ceil_mode={{ ceil_mode }},
-        count_include_pad={{ count_include_pad }}
+        {{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(p.kernel_size)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, ceil_mode={{ p.ceil_mode | default(false) }},
+        count_include_pad={{ p.count_include_pad | default(true) }}
     )
-{% endmacro %}
-
-{% macro AvgPool3d(
-    kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True
-) %}
+    {%- elif t == 'AvgPool3d' %}
     nn.AvgPool3d(
-        {{ kernel_size }}, stride={{ stride or kernel_size }},
-        padding={{ padding }}, ceil_mode={{ ceil_mode }},
-        count_include_pad={{ count_include_pad }}
+        {{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(p.kernel_size)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, ceil_mode={{ p.ceil_mode | default(false) }},
+        count_include_pad={{ p.count_include_pad | default(true) }}
     )
-{% endmacro %}
-
-{% macro BatchNorm1d(
-    num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True
-) %}
+    {%- elif t == 'BatchNorm1d' %}
     nn.BatchNorm1d(
-        {{ num_features }}, eps={{ eps }}, momentum={{ momentum }},
-        affine={{ affine }}, track_running_stats={{ track_running_stats }}
+        {{ pyarg(p.num_features) }}, eps={{ p.eps | default(1e-5) }}, momentum={{ p.momentum | default(0.1) }},
+        affine={{ p.affine | default(true) }}, track_running_stats={{ p.track_running_stats | default(true) }}
     )
-{% endmacro %}
-
-{% macro BatchNorm2d(
-    num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True
-) %}
+    {%- elif t == 'BatchNorm2d' %}
     nn.BatchNorm2d(
-        {{ num_features }}, eps={{ eps }}, momentum={{ momentum }},
-        affine={{ affine }}, track_running_stats={{ track_running_stats }}
+        {{ pyarg(p.num_features) }}, eps={{ p.eps | default(1e-5) }}, momentum={{ p.momentum | default(0.1) }},
+        affine={{ p.affine | default(true) }}, track_running_stats={{ p.track_running_stats | default(true) }}
     )
-{% endmacro %}
-
-{% macro BatchNorm3d(
-    num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True
-) %}
+    {%- elif t == 'BatchNorm3d' %}
     nn.BatchNorm3d(
-        {{ num_features }}, eps={{ eps }}, momentum={{ momentum }},
-        affine={{ affine }}, track_running_stats={{ track_running_stats }}
+        {{ pyarg(p.num_features) }}, eps={{ p.eps | default(1e-5) }}, momentum={{ p.momentum | default(0.1) }},
+        affine={{ p.affine | default(true) }}, track_running_stats={{ p.track_running_stats | default(true) }}
     )
-{% endmacro %}
-
-{% macro LayerNorm(
-    normalized_shape, eps=1e-5, elementwise_affine=True
-) %}
+    {%- elif t == 'LayerNorm' %}
     nn.LayerNorm(
-        {{ normalized_shape }}, eps={{ eps }}, elementwise_affine={{ elementwise_affine }}
+        {{ pyarg(p.normalized_shape) }}, eps={{ p.eps | default(1e-5) }}, elementwise_affine={{ p.elementwise_affine | default(true) }}
     )
-{% endmacro %}
-
-{% macro Transformer(
-    d_model=512, nhead=8, num_encoder_layers=6, num_decoder_layers=6,
-    dim_feedforward=2048, dropout=0.1, activation='relu'
-) %}
+    {%- elif t == 'Transformer' %}
     nn.Transformer(
-        d_model={{ d_model }}, nhead={{ nhead }},
-        num_encoder_layers={{ num_encoder_layers }},
-        num_decoder_layers={{ num_decoder_layers }},
-        dim_feedforward={{ dim_feedforward }}, dropout={{ dropout }},
-        activation='{{ activation }}'
+        d_model={{ p.d_model | default(512) }}, nhead={{ p.nhead | default(8) }},
+        num_encoder_layers={{ p.num_encoder_layers | default(6) }},
+        num_decoder_layers={{ p.num_decoder_layers | default(6) }},
+        dim_feedforward={{ p.dim_feedforward | default(2048) }}, dropout={{ p.dropout | default(0.1) }},
+        activation='{{ p.activation | default("relu") }}'
     )
-{% endmacro %}
-
-{% macro MultiheadAttention(
-    embed_dim, num_heads, dropout=0.0, bias=True, add_bias_kv=False
-) %}
+    {%- elif t == 'MultiheadAttention' %}
     nn.MultiheadAttention(
-        {{ embed_dim }}, {{ num_heads }},
-        dropout={{ dropout }}, bias={{ bias }}, add_bias_kv={{ add_bias_kv }}
+        {{ pyarg(p.embed_dim) }}, {{ pyarg(p.num_heads) }},
+        dropout={{ p.dropout | default(0.0) }}, bias={{ p.bias | default(true) }}, add_bias_kv={{ p.add_bias_kv | default(false) }}
     )
-{% endmacro %}
-
-{% macro Dropout(p=0.5, inplace=False) %}
-    nn.Dropout(p={{ p }}, inplace={{ inplace }})
-{% endmacro %}
-
-{% macro Dropout1d(p=0.5, inplace=False) %}
-    nn.Dropout1d(p={{ p }}, inplace={{ inplace }})
-{% endmacro %}
-
-{% macro Dropout2d(p=0.5, inplace=False) %}
-    nn.Dropout2d(p={{ p }}, inplace={{ inplace }})
-{% endmacro %}
-
-{% macro Dropout3d(p=0.5, inplace=False) %}
-    nn.Dropout3d(p={{ p }}, inplace={{ inplace }})
-{% endmacro %}
-
-{% macro Embedding(
-    num_embeddings, embedding_dim, padding_idx=None, max_norm=None, sparse=False
-) %}
+    {%- elif t == 'Dropout' %}
+    nn.Dropout(p={{ p.p | default(0.5) }}, inplace={{ p.inplace | default(false) }})
+    {%- elif t == 'Dropout1d' %}
+    nn.Dropout1d(p={{ p.p | default(0.5) }}, inplace={{ p.inplace | default(false) }})
+    {%- elif t == 'Dropout2d' %}
+    nn.Dropout2d(p={{ p.p | default(0.5) }}, inplace={{ p.inplace | default(false) }})
+    {%- elif t == 'Dropout3d' %}
+    nn.Dropout3d(p={{ p.p | default(0.5) }}, inplace={{ p.inplace | default(false) }})
+    {%- elif t == 'Embedding' %}
     nn.Embedding(
-        {{ num_embeddings }}, {{ embedding_dim }},
-        padding_idx={{ padding_idx }}, max_norm={{ max_norm }}, sparse={{ sparse }}
+        {{ pyarg(p.num_embeddings) }}, {{ pyarg(p.embedding_dim) }},
+        padding_idx={{ p.padding_idx | default('None') }}, max_norm={{ p.max_norm | default('None') }}, sparse={{ p.sparse | default(false) }}
     )
-{% endmacro %}
-
-{% macro PixelShuffle(upscale_factor) %}
-    nn.PixelShuffle(upscale_factor={{ upscale_factor }})
-{% endmacro %}
-
-{% macro Upsample(size, scale_factor=None, mode='nearest') %}
-    nn.Upsample(size={{ size }}, scale_factor={{ scale_factor }}, mode='{{ mode }}')
-{% endmacro %}
-
-{% macro LSTM(
-    input_size, hidden_size, num_layers=1, batch_first=False, bidirectional=False
-) %}
+    {%- elif t == 'PixelShuffle' %}
+    nn.PixelShuffle(upscale_factor={{ pyarg(p.upscale_factor) }})
+    {%- elif t == 'Upsample' %}
+    nn.Upsample(size={{ pyarg(p.size) }}, scale_factor={{ p.scale_factor | default('None') }}, mode='{{ p.mode | default("nearest") }}')
+    {%- elif t == 'LSTM' %}
     nn.LSTM(
-        input_size={{ input_size }}, hidden_size={{ hidden_size }},
-        num_layers={{ num_layers }}, batch_first={{ batch_first }},
-        bidirectional={{ bidirectional }}
+        input_size={{ pyarg(p.input_size) }}, hidden_size={{ pyarg(p.hidden_size) }},
+        num_layers={{ pyarg(p.num_layers | default(1)) }}, batch_first={{ p.batch_first | default(false) }},
+        bidirectional={{ p.bidirectional | default(false) }}
     )
-{% endmacro %}
-
-{% macro Flatten(start_dim=1, end_dim=-1) %}
-    nn.Flatten(start_dim={{ start_dim }}, end_dim={{ end_dim }})
-{% endmacro %}
-
-{% macro Unfold(kernel_size, stride=1, padding=0, dilation=1) %}
+    {%- elif t == 'Flatten' %}
+    nn.Flatten(start_dim={{ p.start_dim | default(1) }}, end_dim={{ p.end_dim | default(-1) }})
+    {%- elif t == 'Unfold' %}
     nn.Unfold(
-        kernel_size={{ kernel_size }}, stride={{ stride }},
-        padding={{ padding }}, dilation={{ dilation }}
+        kernel_size={{ pyarg(p.kernel_size) }}, stride={{ pyarg(p.stride | default(1)) }},
+        padding={{ pyarg(p.padding | default(0)) }}, dilation={{ pyarg(p.dilation | default(1)) }}
     )
-{% endmacro %}
+    {%- else %}
+    # Unsupported layer: {{ t }} (Params: {{ p }})
+    {%- endif %}
+    {%- if not loop.last %},{% endif %}
+{%- endfor %}
+)

@@ -1,24 +1,61 @@
 import json
 import argparse
-import os
 from pathlib import Path
+import sys
 import jinja2
 import isort
 import black
+from thefuzz import process
+from configs.registries import (
+    optimizerreg,
+    lossreg,
+    metricreg,
+    layerreg,
+    modelreg,
+)
 
-try:
-    from aliases import OPTIMIZER_ALIASES, LOSS_ALIASES, METRIC_ALIASES
-except ImportError:
-	OPTIMIZER_ALIASES, LOSS_ALIASES, METRIC_ALIASES = {},{},{}
-	
-	
+
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+print(f"Base directory in paerser is: {BASE_DIR}", file=sys.stderr)
+
+sys.path.insert(0, str(BASE_DIR / "modules"))
+sys.path.insert(0, str(BASE_DIR / "templates"))
+
+DEFAULT_BASE_PATH = BASE_DIR
+
+REGISTRY_MAP = {
+    "optimizers": optimizerreg.OPTIMIZER_REGISTRY,
+    "losses": lossreg.LOSS_REGISTRY,
+    "metrics": metricreg.METRIC_REGISTRY,
+    "layers": layerreg.LAYER_REGISTRY,
+    "models": modelreg.PRETRAINED_MODEL_REGISTRY,
+}
+
+
+def fuzzy_match(query: str, choices: list[str], threshold: int = 75) -> str:
+    """
+    Perform fuzzy matching on choices to resolve query.
+    """
+    matched, score = process.extractOne(query, choices)
+    if score >= threshold:
+        return matched
+    raise ValueError(f"No suitable match for '{query}'. Closest match was '{matched}' with a score of {score}.")
+
+
 def setup_environment():
     base = Path(__file__).parent.parent
+    if getattr(sys, 'frozen', False):
+        # If running as a bundled app, use the _MEIPASS directory
+        base = Path(sys._MEIPASS)
     return jinja2.Environment(
         loader=jinja2.FileSystemLoader(str(base / "templates")),
         keep_trailing_newline=True,
         autoescape=False
     )
+
 
 env = setup_environment()
 
@@ -33,179 +70,134 @@ TASK_MAP = {
     "metrics": "train/metrics.j2"
 }
 
-DEFAULT_OUTPUT = Path(__file__).parent.parent / "outputs" / "out.py"
-        
-def resolve_template_from_alias(section: str, cfg: dict) -> str:
-    if section == "optimizer":
-        return normalize_name(cfg["optimizer"]["name"], OPTIMIZER_ALIASES)
-    elif section == "loss":
-        return normalize_name(cfg["loss"]["name"], LOSS_ALIASES)
-    elif section == "metric":
-        return normalize_name(cfg["metric"]["name"], METRIC_ALIASES)
-    else:
-        raise ValueError(f"Unsupported alias-resolved section: {section}")
+DEFAULT_OUTPUT = BASE_DIR / "outputs" / "out.py"
 
 
-UI_TO_BACKEND_NAME_MAP = {
-    "vit": "ViT",
-    "visiontransformer": "ViT",
-    "plain-text": "csv",
-    "wav": "audio",
-    "mp3": "audio",
-    "flac": "audio",
-    "pickle": "other",
-    "pytorch-tensor": "other",
-    "image-segmentation": "segmentation",
-    "object-detection": "object_detection"
-}
-
-def normalize_name(name: str, alias_map: dict) -> str:
-    key = name.strip().lower()
-    key = UI_TO_BACKEND_NAME_MAP.get(key, key)  # Add this line
-    return alias_map.get(key, name)
-    
-def normalize_config(cfg):
-    data_cfg = cfg.get("data", {})
-
-    sub_task_ui = data_cfg.get("sub_task", "")
-    cfg["data"]["sub_task"] = UI_TO_BACKEND_NAME_MAP.get(sub_task_ui.lower(), sub_task_ui)
-
-    opt_cfg = cfg.get("training", {}).get("optimizer", {})
-    if opt_cfg and "name" in opt_cfg:
-        opt_cfg["name"] = normalize_name(opt_cfg["name"], OPTIMIZER_ALIASES)
-
-    loss_cfg = cfg.get("training", {}).get("loss", {})
-    if loss_cfg := cfg.get("training", {}).get("loss"):
-        loss_cfg["name"] = normalize_name(loss_cfg["name"], LOSS_ALIASES)
-
-    metric_cfgs = cfg.get("training", {}).get("metrics", [])
-    for metric_cfg in metric_cfgs:
-        metric_cfg["name"] = normalize_name(metric_cfg["name"], METRIC_ALIASES)
-        
 def read_config(path):
     return json.loads(Path(path).read_text())
 
 
-SUBTASK_MAPPING = {
-    "image classification": "classification",
-    "object detection": "object_detection",
-    "image segmentation": "segmentation",
-    "image generation": "generation",
-    "text classification": "classification",
-    "text generation": "generation",
-    "machine translation": "translation",
-    "text summarization": "summarisation",
-    "speech recognition": "recognition",
-    "audio classification": "classification",
-    "audio generation": "generation",
-    "voice conversion": "conversion"
-}
+def auto_resolve_name(category: str, provided_name: str) -> str:
+    registry = REGISTRY_MAP.get(category)
+    if not registry:
+        raise ValueError(f"No registry found for category '{category}'.")
+    return fuzzy_match(provided_name, list(registry.keys()))
 
-def resolve_name(section, cfg):
-    main_task = cfg["data"]["main_task"].lower()
-    sub_task_original = cfg["data"]["sub_task"].lower()
 
-    TASK_MAPPING = {
-        'image processing': 'image',
-        'text processing': 'text',
-        'audio processing': 'audio',
-        'ml': 'ML'
-    }
+def normalize_names(cfg: dict):
+    training = cfg.get("training", {})
+    if optimizer := training.get("optimizer"):
+        optimizer["name"] = auto_resolve_name("optimizers", optimizer["name"])
+    if loss := training.get("loss"):
+        loss["name"] = auto_resolve_name("losses", loss["name"])
+    for metric in training.get("metrics", []):
+        metric["name"] = auto_resolve_name("metrics", metric["name"])
+    
+    model_cfg = cfg.get("model", {})
+    if model_cfg.get("use_pretrained", False):
+        if pretrained := model_cfg.get("pretrained", {}):
+            pretrained["name"] = auto_resolve_name("models", pretrained["name"])
+    elif layers := model_cfg.get("layers", []):
+        for layer in layers:
+            layer["type"] = auto_resolve_name("layers", layer["type"])
 
-    task_dir = TASK_MAPPING.get(main_task)
-    if task_dir is None:
-        raise ValueError(f"No task mapping found for main_task: '{main_task}'")
 
-    subtask_dir = SUBTASK_MAPPING.get(sub_task_original)
-    if subtask_dir is None and section == 'loaders':
-        raise ValueError(f"No subtask mapping for sub_task: '{sub_task_original}'")
 
-    if section == "models" and cfg.get("model", {}).get("modelType") == "custom":
-        return TASK_MAP["custom_model"]
-
+def resolve_template(section, cfg):
+    debug_log(f"resolve_template called with section={section}")
+    task_available = ["audio", "video", "image", "text", "tabular"]
+    subtask_available = ["classification", "regression", "generation"]
+    task_ui = cfg["main_task"].split()[0]
+    subtask_ui = cfg["sub_task"]
+    task_dir = fuzzy_match(task_ui, task_available)
+    subtask_dir = fuzzy_match(subtask_ui, subtask_available)
+    if section == "models":
+        if cfg.get("model", {}).get("use_pretrained", False):
+            return TASK_MAP["models"].format(task=task_dir)
+        else:
+            return TASK_MAP["custom_model"]
     if section == "loaders":
         return TASK_MAP[section].format(task=task_dir, subtask=subtask_dir)
-
-    else:
-        return TASK_MAP[section].format(task=task_dir, subtask='')
+    return TASK_MAP[section].format(task=task_dir)
 
 
-TASK_MAP = {
-    "imports": "imports.j2",
-    "models": "models/{task}.j2",
-    "transforms": "data/transforms/{task}.j2",
-    "loaders": "data/loaders/{task}/{subtask}.j2",
-    "custom_model": "models/layers.j2",
-    "optimizer": "train/optimizers.j2",
-    "loss": "train/losses.j2",
-    "metrics": "train/metrics.j2"
-}
-
-def render_template(name, context):
+def render_template(path, context):
     try:
-        tpl = env.get_template(name)
+        template = env.get_template(path)
+        return template.render(
+            config=context,
+            model=context.get("model", {}),
+            layers=context.get("model", {}).get("layers", []),
+            METRIC_REGISTRY=metricreg.METRIC_REGISTRY,
+            OPTIMIZER_REGISTRY=optimizerreg.OPTIMIZER_REGISTRY,
+            LOSS_REGISTRY=lossreg.LOSS_REGISTRY,
+            LAYER_REGISTRY=layerreg.LAYER_REGISTRY
+        )
     except jinja2.exceptions.TemplateNotFound:
-        raise ValueError(f"Template not found: {name}")
-    return tpl.render(config=context)
+        raise ValueError(f"Template {path} not found.")
+
 
 def assemble(cfg):
-    normalize_config(cfg)
+    normalize_names(cfg)
     parts = []
-
-    imports_template = resolve_name("imports", cfg)
+    imports_template = resolve_template("imports", cfg)
     parts.append(render_template(imports_template, cfg))
-
-    sections = ["models", "transforms", "loaders"]
-    for sec in sections:
-        template_name = resolve_name(sec, cfg)
-        parts.append(render_template(template_name, cfg))
-
+    model_template = resolve_template("models", cfg)
+    parts.append(render_template(model_template, cfg))
+    transforms_template = resolve_template("transforms", cfg)
+    parts.append(render_template(transforms_template, cfg).strip())
+    if dataloading_code := cfg.get("dataloading"):
+        parts.append(dataloading_code.strip())
     static_templates = [
         "setup.j2",
         "train/utils.j2",
         "train/train_loop.j2",
-        "train/eval_loop.j2"
+        "train/eval_loop.j2",
+        "train/monitoring.j2",
+        "train/optimizers.j2",
+        "train/losses.j2",
+        "train/metrics.j2",
+        "runner.j2",
     ]
     for template in static_templates:
-        if template in env.list_templates():
-            parts.append(env.get_template(template).render(config=cfg))
-
-    # shared_components = ["train/optimizers.j2", "train/losses.j2", "train/metrics.j2"]
-    # for shared in shared_components:
-    #     parts.append(env.get_template(shared).render(config=cfg))
-
-    if "monitoring" in cfg:
-        parts.append(env.get_template("train/monitoring.j2").render(config=cfg))
-
-    if "runner.j2" in env.list_templates():
-        parts.append(env.get_template("runner.j2").render(config=cfg))
-
-    combined_code = "\n\n".join(parts)
-    return combined_code
+        debug_log(f"Rendering static template: {template}")
+        parts.append(env.get_template(template).render(
+            config=cfg,
+            METRIC_REGISTRY=metricreg.METRIC_REGISTRY,
+            OPTIMIZER_REGISTRY=optimizerreg.OPTIMIZER_REGISTRY,
+            LOSS_REGISTRY=lossreg.LOSS_REGISTRY,
+            LAYER_REGISTRY=layerreg.LAYER_REGISTRY
+        ))
+    return "\n\n".join(parts)
 
 
 def write_output(code: str, output_path: Path):
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    # remove duplicates, organize imports 
-    code = isort.code(code)
-    # format code, remove extra newlines
-    mode = black.FileMode(line_length=88)
-    code = black.format_str(code, mode=mode)
+    try:
+        code = isort.code(code)
+        mode = black.FileMode(line_length=88)
+        code = black.format_str(code, mode=mode)
+    except black.parsing.InvalidInput as e:
+        debug_log(f"Black formatting error: {e}")
+        raise
     output_path.write_text(code)
+    # print(json.dumps({"generated_path": str(output_path.resolve())}))
 
 
 def get_output_path(user_path: str = None) -> Path:
-    if user_path:
-        return Path(user_path)
-    path = DEFAULT_OUTPUT
+    path = Path(user_path) if user_path else DEFAULT_OUTPUT
     if path.exists():
         idx = 1
-        while True:
-            candidate = path.with_name(f"{path.stem}_{idx}{path.suffix}")
-            if not candidate.exists():
-                return candidate
+        while (candidate := path.with_name(f"{path.stem}_{idx}{path.suffix}")).exists():
             idx += 1
+        return candidate
     return path
+
+
+def debug_log(message: str):
+    """Write debug information to stderr."""
+    print(message, file=sys.stderr)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Generate code from templates.")
@@ -215,11 +207,11 @@ def main():
     cfg = read_config(args.config)
     code = assemble(cfg)
     out_path = get_output_path(args.output)
-    write_output(code, out_path)
 
-    results = {"generated_path": os.path.abspath(out_path)}
-    print(json.dumps(results)) 
-    return results
+    # TODO: change this to use the UI code instead of saving to a file
+    write_output(code, out_path)
+    print(json.dumps({"generated_path": str(out_path.resolve())}))  # required for writing
+
 
 if __name__ == "__main__":
     main()
