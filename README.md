@@ -47,4 +47,4 @@ and make another python version in modules/configs/registries/
 rarely you might need to modify configs in modules/configs.
 
 
-for UI, just add the function similarly as typescript 
+for UI, just add the function similarly as typescript as in [client repo](https://github.com/suhaib-us/PytorchForge/tree/main/client%2Fapp%2Froutes%2Fnew-pipeline.dl._index%2Fsections)
