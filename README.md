@@ -37,3 +37,14 @@
 3. convert the fastAPI app into rust based. there isnt much benefit of using python here.
 4. the dataloaders specifically have too much variation, trying to only
    use subset like other tasks isnt viable as you'd be either recreating the whole pytorch dataset or hardcode everything which defeats the point of a generic expandable system
+
+
+## adding capabilities 
+To add extra functions, add them as a jinja file in templates/{function_dir},
+
+and make another python version in modules/configs/registries/
+
+rarely you might need to modify configs in modules/configs.
+
+
+for UI, just add the function similarly as typescript 
