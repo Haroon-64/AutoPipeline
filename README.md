@@ -37,7 +37,7 @@
 3. convert the fastAPI app into rust based. there isnt much benefit of using python here.
 4. the dataloaders specifically have too much variation, trying to only
    use subset like other tasks isnt viable as you'd be either recreating the whole pytorch dataset or hardcode everything which defeats the point of a generic expandable system
-
+5. fix windows and mac versions, only linux works right now
 
 ## adding capabilities 
 To add extra functions, add them as a jinja file in templates/{function_dir},
